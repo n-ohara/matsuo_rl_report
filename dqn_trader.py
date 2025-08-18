@@ -1,7 +1,8 @@
 from dqn_core import Dqn
 
 class DQNTrader:
-    def __init__(self, env):
+    def __init__(self, env, trader_id=0):
+        self.trader_id = trader_id
         self.agent = Dqn(
             dim_state=env.observation_space.shape[0],
             num_action=env.action_space.n,
@@ -17,3 +18,4 @@ class DQNTrader:
 
     def append(self, transition):
         self.agent.replay_buffer.append(transition)
+
