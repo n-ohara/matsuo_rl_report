@@ -1,14 +1,26 @@
 from market_env import MarketEnvironment
-from dqn_trader import DQNTrader
 import numpy as np
 import matplotlib.pyplot as plt
 
-num_traders = 2
+from trader import Trader
+from dqn_core import Dqn
+
+num_traders = 1
 
 env = MarketEnvironment(num_traders=num_traders)
-agents = [DQNTrader(env, trader_id=i) for i in range(num_traders)]
 
-num_episode = 100
+agents = []
+for i in range(num_traders):
+    agent = Dqn(
+        dim_state=env.observation_space.shape[0],
+        num_action=env.action_space.n,
+        memory_size=50000,
+        target_update_freq=30
+    )
+    trader = Trader(env, agent=agent, trader_id=i)
+    agents.append(trader)#ここまで
+
+num_episode = 80000#100
 initial_memory_size = 500
 episode_rewards = [[] for _ in range(num_traders)]
 

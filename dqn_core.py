@@ -88,3 +88,10 @@ class Dqn:
         self.learn_step += 1
         if self.learn_step % self.target_update_freq == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
+    
+    def learn(self):
+        self.update_q()
+    
+    def append(self, transition):
+        self.replay_buffer.append(transition)
+
