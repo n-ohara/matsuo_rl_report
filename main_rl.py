@@ -4,31 +4,35 @@ import matplotlib.pyplot as plt
 
 from trader import Trader
 from dqn_core import Dqn
-from ppo_core_no_gae import PPO
+from ppo_core_no_gae import PPO as PPO_NoGAE
+from ppo_core_gae import PPO as PPO_GAE
 
-num_traders = 2
+#example "dqn","ppo_no_gae","ppo_gae"
+agent_types = ["ppo_no_gae","ppo_gae"]
+
+num_traders = len(agent_types)
 env = MarketEnvironment(num_traders=num_traders)
-
-# エージェントの種類を指定
-agent_type = "mixed"  # "dqn" or "ppo" or "mixed"
 
 agents = []
 for i in range(num_traders):
+    agent_type = agent_types[i]
     if agent_type == "dqn":
         agent = Dqn(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
-    elif agent_type == "ppo":
-        agent = PPO(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
-    elif agent_type == "mixed":
-        agent = Dqn(dim_state=env.observation_space.shape[0], num_action=env.action_space.n) if i % 2 == 0 else PPO(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
+    elif agent_type == "ppo_no_gae":
+        agent = PPO_NoGAE(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
+    elif agent_type == "ppo_gae":
+        agent = PPO_GAE(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
+    else:
+        raise ValueError(f"Unknown agent type: {agent_type}")
     trader = Trader(env, agent=agent, trader_id=i)
     agents.append(trader)
 
-num_episode = 200
+num_episode = 100
 initial_memory_size = 500
 episode_rewards = [[] for _ in range(num_traders)]
 
 # 初期メモリ構築は DQN のみ
-if agent_type in ["dqn", "mixed"]:
+if "dqn" in agent_types:
     states = env.reset()
     for _ in range(initial_memory_size):
         actions = [env.action_space.sample() for _ in range(num_traders)]
@@ -59,7 +63,7 @@ for episode in range(num_episode):
         actions = []
         log_pis = []
         for i in range(num_traders):
-            if isinstance(agents[i].agent, PPO):
+            if "ppo" in agent_types[i]:
                 action, log_pi = agents[i].agent.get_action(states[i])
             else:
                 action = agents[i].act(states[i], episode)
@@ -91,7 +95,7 @@ for episode in range(num_episode):
 
     # PPOはエピソード終了後にまとめて学習
     for i in range(num_traders):
-        if isinstance(agents[i].agent, PPO):
+        if "ppo" in agent_types[i]:
             for t in trajectory[i]:
                 agents[i].append(t)
             agents[i].learn()
