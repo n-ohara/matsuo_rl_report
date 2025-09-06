@@ -154,8 +154,8 @@ class PPO:
             with torch.no_grad():
                 log_pi_new = self.actor.evaluate_log_pi(states, actions)
                 prob_ratio = torch.exp(log_pi_new - log_pis_old)
-                print(f"[Ep {self._episode_counter}] "
-                    f"ActorLoss: {loss_actor.item():.4f} | "
-                    f"ProbRatio μ={prob_ratio.mean().item():.3f} σ={prob_ratio.std().item():.3f} | "
-                    f"Advantage μ={advantage.mean().item():.4f} σ={advantage.std().item():.4f} | "
-                    f"Returns μ={returns.mean().item():.2f} | Values μ={values.mean().item():.2f}")
+                #print(f"[Ep {self._episode_counter}] "
+                #    f"ActorLoss: {loss_actor.item():.4f} | "
+                #    f"ProbRatio μ={prob_ratio.mean().item():.3f} σ={prob_ratio.std().item():.3f} | "
+                #    f"Advantage μ={advantage.mean().item():.4f} σ={advantage.std().item():.4f} | "
+                #    f"Returns μ={returns.mean().item():.2f} | Values μ={values.mean().item():.2f}")

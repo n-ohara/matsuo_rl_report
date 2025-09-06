@@ -6,9 +6,10 @@ from trader import Trader
 from dqn_core import Dqn
 from ppo_core_no_gae import PPO as PPO_NoGAE
 from ppo_core_gae import PPO as PPO_GAE
+from sac_core import SAC
 
 #example "dqn","ppo_no_gae","ppo_gae"
-agent_types = ["ppo_no_gae","ppo_gae"]
+agent_types = ["dqn","ppo_no_gae","sac","sac"]
 
 num_traders = len(agent_types)
 env = MarketEnvironment(num_traders=num_traders)
@@ -22,12 +23,14 @@ for i in range(num_traders):
         agent = PPO_NoGAE(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
     elif agent_type == "ppo_gae":
         agent = PPO_GAE(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
+    elif agent_type == "sac":
+        agent = SAC(dim_state=env.observation_space.shape[0], num_action=env.action_space.n)
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
     trader = Trader(env, agent=agent, trader_id=i)
     agents.append(trader)
 
-num_episode = 100
+num_episode = 200
 initial_memory_size = 500
 episode_rewards = [[] for _ in range(num_traders)]
 
@@ -63,7 +66,7 @@ for episode in range(num_episode):
         actions = []
         log_pis = []
         for i in range(num_traders):
-            if "ppo" in agent_types[i]:
+            if "ppo" in agent_types[i] or "sac" in agent_types[i]:
                 action, log_pi = agents[i].agent.get_action(states[i])
             else:
                 action = agents[i].act(states[i], episode)
@@ -93,9 +96,9 @@ for episode in range(num_episode):
             total_rewards[i] += rewards[i]
         states = next_states
 
-    # PPOはエピソード終了後にまとめて学習
+    # PPO,sacはエピソード終了後にまとめて学習
     for i in range(num_traders):
-        if "ppo" in agent_types[i]:
+        if agent_type in ["ppo_gae", "ppo_no_gae", "sac"]:
             for t in trajectory[i]:
                 agents[i].append(t)
             agents[i].learn()
